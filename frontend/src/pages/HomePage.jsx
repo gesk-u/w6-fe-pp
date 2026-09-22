@@ -1,9 +1,35 @@
 import BookListings from "../components/BookListings";
+import { useState, useEffect } from "react";
+
 
 const Home = () => {
+
+  const [books, setBooks] = useState(null);
+  const [isPending, setIsPending] = useState(true);
+  const [error, setError] = useState(null);
+
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const response = await fetch("/api/books");
+        if (!response.ok) throw new Error("Could not fetch books");
+        const data = await response.json();
+        setBooks(data);
+        setIsPending(false);
+      } catch (err) {
+        setError(err.message);
+        setIsPending(false);
+      }
+    };
+    fetchBooks();
+  }, []);
+
   return (
     <div className="home">
-      <BookListings />
+      {error && <div>{error}</div>}
+      {isPending && <div>Loading...</div>}
+      {books && <BookListings books={books} />}
     </div>
   );
 };
