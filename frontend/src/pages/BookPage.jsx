@@ -1,42 +1,49 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 
-const BookPage = () => {
+const BookPage = ({ isAuthenticated }) => {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = user ? user.token : null;
+
   const deleteBook = async (bookId) => {
-  try {
-    const res = await fetch(`/api/books/${bookId}`, {
-      method: "DELETE",
-    });
-    if (!res.ok) throw new Error("Failed to delete book");
-  } catch (error) {
-    console.error("Error deleting book:", error);
-  }
-};
-const onDeleteClick = (bookId) => {
-  const confirm = window.confirm("Are you sure you want to delete this book?");
-  if (!confirm) return;
-  deleteBook(bookId);
-  navigate("/");
-};
-  useEffect(() => {
-  const fetchBook = async () => {
     try {
-      const res = await fetch(`/api/books/${id}`);
-      if (!res.ok) throw new Error("Network response was not ok");
-      const data = await res.json();
-      setBook(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      const res = await fetch(`/api/books/${bookId}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,    // <-- ADD THIS
+        },
+      });
+      if (!res.ok) throw new Error("Failed to delete book");
+      navigate("/");
+    } catch (error) {
+      console.error("Error deleting book:", error);
     }
   };
-  fetchBook();
+  const onDeleteClick = (bookId) => {
+    const confirm = window.confirm("Are you sure you want to delete this book?");
+    if (!confirm) return;
+    deleteBook(bookId);
+    navigate("/");
+  };
+  useEffect(() => {
+    const fetchBook = async () => {
+      try {
+        const res = await fetch(`/api/books/${id}`);
+        if (!res.ok) throw new Error("Network response was not ok");
+        const data = await res.json();
+        setBook(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchBook();
   }, [id])
 
   return (
@@ -54,8 +61,12 @@ const onDeleteClick = (bookId) => {
             : "—"}
           </p>
           <p>Borrower: {book.availability.borrower || "—"}</p>
-          <button onClick={() => onDeleteClick(book._id)}>Delete</button>
-          <button onClick={() => navigate(`/edit-book/${book._id}`)}>Edit</button>
+          {isAuthenticated && (
+            <>
+              <button onClick={() => navigate(`/edit-book/${book._id}`)}>Edit</button>
+              <button onClick={() => onDeleteClick(book._id)}>Delete</button>
+            </>
+          )}
           <button onClick={() => navigate("/")}>Back</button>
         </div>
       )}

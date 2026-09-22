@@ -11,19 +11,26 @@ const AddBookPage = () => {
   const [dueDate, setDueDate] = useState("");
   const [borrower, setBorrower] = useState("");
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = user ? user.token : null;
 
   const addBook = async (newBook) => {
-    try {
-      const res = await fetch("/api/books", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newBook),
-      });
-      if (!res.ok) throw new Error("Failed to add book");
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  try {
+    const res = await fetch("/api/books", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,    // <-- ADD THIS
+      },
+      body: JSON.stringify(newBook),
+    });
+    if (!res.ok) throw new Error("Failed to add book");
+    return true;
+  } catch (error) {
+    console.error("Error adding book:", error);
+    return false;
+  }
+};
 
   const submitForm = (e) => {
     e.preventDefault();

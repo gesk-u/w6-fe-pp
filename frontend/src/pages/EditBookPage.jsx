@@ -14,7 +14,8 @@ const EditBookPage = () => {
   const [isAvailable, setIsAvailable] = useState("true");
   const [dueDate, setDueDate] = useState("");
   const [borrower, setBorrower] = useState("");
-
+  const user = JSON.parse(localStorage.getItem("user"));
+  const token = user ? user.token : null;
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -37,20 +38,23 @@ const EditBookPage = () => {
   }, [id]);
 
 
-  const updateBook = async (updatedBook) => {
-    try {
-      const res = await fetch(`/api/books/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updatedBook),
-      });
-      if (!res.ok) throw new Error("Failed to update book");
-      return true;
-    } catch (error) {
-      console.error("Error updating book:", error);
-      return false;
-    }
-  };
+ const updateBook = async (book) => {
+  try {
+    const res = await fetch(`/api/books/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,    // <-- ADD THIS
+      },
+      body: JSON.stringify(book),
+    });
+    if (!res.ok) throw new Error("Failed to update book");
+    return true;
+  } catch (error) {
+    console.error("Error updating book:", error);
+    return false;
+  }
+};
 
 
   const submitForm = (e) => {
