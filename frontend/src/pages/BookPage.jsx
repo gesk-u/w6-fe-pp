@@ -7,7 +7,22 @@ const BookPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
-
+  const deleteBook = async (bookId) => {
+  try {
+    const res = await fetch(`/api/books/${bookId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) throw new Error("Failed to delete book");
+  } catch (error) {
+    console.error("Error deleting book:", error);
+  }
+};
+const onDeleteClick = (bookId) => {
+  const confirm = window.confirm("Are you sure you want to delete this book?");
+  if (!confirm) return;
+  deleteBook(bookId);
+  navigate("/");
+};
   useEffect(() => {
   const fetchBook = async () => {
     try {
@@ -39,6 +54,7 @@ const BookPage = () => {
             : "—"}
           </p>
           <p>Borrower: {book.availability.borrower || "—"}</p>
+          <button onClick={() => onDeleteClick(book._id)}>Delete</button>
           <button onClick={() => navigate("/")}>Back</button>
         </div>
       )}
